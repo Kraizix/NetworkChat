@@ -1,0 +1,6 @@
+{
+  "name": "network-chat",
+  "dependencies": [
+    "boost-asio"
+  ]
+}
