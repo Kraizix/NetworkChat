@@ -1,29 +1,18 @@
 #pragma once
+
 #include <concepts>
 #include <unordered_map>
 #include <functional>
 #include <stdexcept>
+#include "Common/Command.h"
+#include "ser/Buffer.h"
 
 namespace ser
 {
-	struct Buffer
-	{
-		/// <summary> Buffer raw data </summary>
-		uint8_t* m_data;
-		/// <summary> The remaining size of the buffer </summary>
-		size_t m_remaining;
-		Buffer(uint8_t* d, size_t size) : m_data(d), m_remaining(size) {}
-	};
-
 	class Serializer
 	{
 
 	public:
-		Serializer() {
-		}
-
-		~Serializer() = default;
-
 		/// <summary>
 		/// Copy the object into the buffer.
 		/// </summary>
@@ -58,6 +47,15 @@ namespace ser
 
 	#pragma region readSpecialization
 		template <>
+		bool Read<CommandType>(Buffer& buffer, CommandType& obj)
+		{
+			uint8_t type;
+			MemcpyBuffer<uint8_t>(type, buffer, sizeof(uint8_t));
+			obj = static_cast<CommandType>(type);
+			return true;
+		}
+
+		template <>
 		bool Read<std::string>(Buffer& buffer, std::string& obj)
 		{
 			size_t objLength;
@@ -68,6 +66,14 @@ namespace ser
 			obj.assign(reinterpret_cast<char*>(buffer.m_data), objLength);
 			buffer.m_data += objLength;
 			buffer.m_remaining -= objLength;
+
+			return true;
+		}
+
+		template <>
+		bool Read<uint16_t>(Buffer& buffer, uint16_t& obj)
+		{
+			MemcpyBuffer<uint16_t>(obj, buffer, sizeof(uint16_t));
 
 			return true;
 		}
@@ -116,6 +122,13 @@ namespace ser
 			return true;
 		}
 
+		template<>
+		bool Read<Command>(Buffer& buffer, Command& obj)
+		{
+			Read(buffer, obj.type);
+			Read(buffer, obj.data);
+			return true;
+		}
 	#pragma endregion
 
 		/// <summary>
@@ -154,6 +167,17 @@ namespace ser
 			buffer.m_data += objLength;
 			buffer.m_remaining -= objLength;
 
+			return true;
+		}
+
+		template<>
+		bool Write<uint16_t>(Buffer& buffer, uint16_t& obj)
+		{
+			size_t size = sizeof(uint16_t);
+			if (buffer.m_remaining < size)
+				return false;
+
+			MemcpyObj<uint16_t>(buffer, obj, size);
 			return true;
 		}
 
@@ -209,6 +233,20 @@ namespace ser
 				if (!Write<std::string>(buffer, item))
 					return false;
 			}
+			return true;
+		}
+
+		template<>
+		bool Write<Command>(Buffer& buffer, Command& obj)
+		{
+			if (!Write<uint16_t>(buffer, obj.total_length))
+				return false;
+			{
+				uint8_t type = static_cast<uint8_t>(obj.type);
+				MemcpyObj<uint8_t>(buffer, type, sizeof(uint8_t));
+			}
+			if (!Write<std::string>(buffer, obj.data))
+				return false;
 			return true;
 		}
 	#pragma endregion
