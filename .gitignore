@@ -417,3 +417,4 @@ FodyWeavers.xsd
 *.msp
 
 vcpkg_installed/
+/Common/build.cpp
