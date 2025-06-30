@@ -46,7 +46,7 @@ void TcpConnection::HandleReadHeader(const boost::system::error_code& error)
 
 	if (m_command.total_length > 0)
 	{
-		if(m_command.total_length < sizeof(m_command.buffer.m_data))
+		if(m_command.total_length > sizeof(m_command.buffer.m_data))
 		{
 			delete[] m_command.buffer.m_data;
 			m_command.buffer.m_data = new uint8_t[m_command.total_length];
