@@ -58,7 +58,7 @@ void Server::StartAccept()
 	connection->SetOnDisconnect([this](auto ptr) { this->RemoveConnection(ptr); });
 	m_acceptor.async_accept(connection->GetSocket(),
 							std::bind(&Server::HandleAccept, this, connection,
-								boost::asio::placeholders::error));
+								std::placeholders::_1));
 }
 
 void Server::HandleAccept(TcpConnection::Ptr connection, const boost::system::error_code error)
