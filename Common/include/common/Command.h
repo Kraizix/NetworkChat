@@ -4,11 +4,29 @@
 #include <vector>
 #include "ser/Buffer.h"
 
-enum class CommandType: uint8_t
+#define RoomFlags CommandType::ListRooms | CommandType::JoinRoom | CommandType::CreateRoom
+
+#define RoomOK "OK"
+#define RoomError "ERROR"
+enum class CommandType : uint8_t
 {
-	Message,
-	Room,
+	Message = 1,
+	ListRooms = 2,
+	JoinRoom = 4,
+	CreateRoom = 8,
+	Disconnect = 16,
 };
+
+
+inline CommandType operator|(CommandType lhs, CommandType rhs)
+{
+	return static_cast<CommandType>(static_cast<uint8_t>(lhs) | static_cast<uint8_t>(rhs));
+}
+
+inline CommandType operator&(CommandType lhs, CommandType rhs)
+{
+	return static_cast<CommandType>(static_cast<uint8_t>(lhs) & static_cast<uint8_t>(rhs));
+}
 
 struct Command
 {
