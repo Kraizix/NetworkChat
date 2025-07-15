@@ -20,12 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\Command.h" />
-    <ClInclude Include="include\common\message.h" />
+    <ClInclude Include="include\Server\Server.h" />
+    <ClInclude Include="include\Server\TcpConnection.h" />
     <ClInclude Include="include\ser\Buffer.h" />
     <ClInclude Include="include\ser\Serializer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="build.cpp" />
+    <ClCompile Include="src\Server\Server.cpp" />
+    <ClCompile Include="src\Server\TcpConnection.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

@@ -18,12 +18,25 @@ void Client::Run()
     std::string line;
     while (std::getline(std::cin, line)) {
         if (!line.empty()) {
-            Client::SendMessage(line);
+			Command c = ParseCommand(line);
+            if (!m_server)
+				SendCommand(c);
+            else
+				m_server->Broadcast(c);
+            std::cout
+                << "\x1b[1A" // Move cursor up one
+                << "\x1b[2K"; // Delete the entire line
+            std::cout << "\r";
         }
     }
 
     m_socket.close();
     ioThread.join();
+    if (m_serverThread) {
+        m_serverThread->join();
+        delete m_serverThread;
+        delete m_server;
+    };
 }
 
 void Client::DoConnect()
@@ -55,6 +68,38 @@ void Client::SendMessage(const std::string& message)
     }
 }
 
+void Client::SendCommand(Command& cmd)
+{
+    m_serializer.Write(cmd.buffer, cmd);
+    cmd.buffer.m_remaining = cmd.total_length + sizeof(cmd.total_length);
+    cmd.buffer.m_data -= cmd.buffer.m_remaining;
+    bool writeInProgress = !m_writeQueue.empty();
+    m_writeQueue.push_back(cmd);
+    if (!writeInProgress) {
+        DoWrite();
+    }
+}
+
+Command Client::ParseCommand(const std::string& line)
+{
+    if (line.empty() || line[0] != '/')
+        return {CommandType::Message, line};
+
+    size_t spacePos = line.find(' ');
+    std::string cmdStr = (spacePos == std::string::npos) ? line.substr(1) : line.substr(1, spacePos - 1);
+    std::string data = (spacePos == std::string::npos) ? "" : line.substr(spacePos + 1);
+
+    CommandType type = CommandType::Message;
+    if (cmdStr == "Message") type = CommandType::Message;
+    else if (cmdStr == "CreateRoom") type = CommandType::CreateRoom;
+    else if (cmdStr == "JoinRoom") type = CommandType::JoinRoom;
+    else if (cmdStr == "ListRooms") type = CommandType::ListRooms;
+    else if (cmdStr == "Disconnect") type = CommandType::Disconnect;
+    else if (cmdStr == "Username") type = CommandType::Username;
+
+    return {type, data};
+}
+
 void Client::DoWrite()
 {
     if (m_writeQueue.empty()) return;
@@ -84,11 +129,12 @@ void Client::DoReadHeader()
         boost::asio::buffer(m_command.buffer.m_data, sizeof(m_command.total_length)),
         [self = shared_from_this()](boost::system::error_code ec, std::size_t) {
             if (!ec) {
+				std::cout << "Header read successfully." << std::endl;
                 self->m_serializer.Read(self->m_command.buffer, self->m_command.total_length);
+                self->m_command.buffer.Reset();
 
-                if (self->m_command.total_length > sizeof(self->m_command.buffer.m_data)) {
-                    delete[] self->m_command.buffer.m_data;
-                    self->m_command.buffer.m_data = new uint8_t[self->m_command.total_length];
+                if (self->m_command.total_length > self->m_command.buffer.m_size) {
+					self->m_command = Command(self->m_command.total_length);
                 }
 
                 self->DoReadBody();
@@ -105,6 +151,7 @@ void Client::DoReadBody()
         boost::asio::buffer(m_command.buffer.m_data, m_command.total_length),
         [self = shared_from_this()](boost::system::error_code ec, std::size_t) {
             if (!ec) {
+				std::cout << "Body read successfully." << std::endl;
                 self->m_serializer.Read(self->m_command.buffer, self->m_command);
                 self->HandleCommand();
                 self->DoReadHeader();  // Loop read
@@ -117,8 +164,46 @@ void Client::DoReadBody()
 
 void Client::HandleCommand()
 {
-	//Refactor this to handle different command types if needed
-    std::string message = "";
-    m_serializer.Read(m_command.buffer, message);
-    std::cout << "[Server]: " << message << std::endl;
+    std::cout << "[Server]: " << m_command.data << std::endl;
+    if (m_command.type == CommandType::CreateRoom)
+    {
+        if (m_command.data == RoomOK)
+        {
+			std::cout << "[Server]: Room created successfully." << std::endl;
+            m_isRoom = true;
+            m_server = new Server(static_cast<boost::asio::ip::port_type>(12344), CommandType::Disconnect | CommandType::Message | CommandType::Username);
+            m_serverThread = new std::thread([this]() { m_server->Run(); });
+        }
+    }
+    else if (m_command.type == CommandType::JoinRoom)
+    {
+        if (m_command.data != RoomError)
+        {
+			std::cout << "[Server]: Joined room successfully." << std::endl;
+            m_ioContext.stop();
+            m_socket.close();
+
+            size_t pos = m_command.data.find(':');
+            if (pos != std::string::npos) {
+                m_host = m_command.data.substr(0, pos);
+                m_port = m_command.data.substr(pos + 1);
+            }
+            m_ioContext.restart();
+            DoConnect();
+        }
+    }
+    else if (m_command.type == CommandType::ListRooms)
+    {
+        std::cout << "[Server]: Available rooms: " << m_command.data << std::endl;
+	}
+    else if (m_command.type == CommandType::Message)
+    {
+	    std::cout << "[Message]: " << m_command.data << std::endl;
+    }
+    else if (m_command.type == CommandType::Disconnect)
+    {
+        std::cout << "[Server]: Disconnected." << std::endl;
+       // TODO: Handle disconnection.
+    }
+	m_command = Command(512);
 }

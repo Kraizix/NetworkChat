@@ -5,9 +5,9 @@
 #include "ser/Buffer.h"
 
 #define RoomFlags CommandType::ListRooms | CommandType::JoinRoom | CommandType::CreateRoom
-
 #define RoomOK "OK"
 #define RoomError "ERROR"
+
 enum class CommandType : uint8_t
 {
 	Message = 1,
@@ -15,6 +15,7 @@ enum class CommandType : uint8_t
 	JoinRoom = 4,
 	CreateRoom = 8,
 	Disconnect = 16,
+	Username = 32,
 };
 
 

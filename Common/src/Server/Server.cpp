@@ -1,7 +1,7 @@
-#include "Server.h"
+#include "Server/Server.h"
 
 #include <iostream>
-#include "TcpConnection.h"
+#include "Server/TcpConnection.h"
 
 Server::Server(boost::asio::ip::port_type port, CommandType flag) : m_acceptor(m_ioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)), m_flag(flag)
 {
@@ -22,16 +22,16 @@ void Server::Run()
 {
 	std::cout << "Server is running." << std::endl;
 	m_ioContext.run();
-}
+ }
 
-bool Server::AddRoom(TcpConnection::Ptr roomConnection)
+bool Server::AddRoom(const TcpConnection::Ptr& roomConnection, std::string& data)
 {
-	if (std::find(m_connections.begin(), m_connections.end(), roomConnection) != m_connections.end())
+	/*if (std::ranges::find(m_connections, roomConnection) != m_connections.end())
 	{
 		std::cerr << "Connection already exists." << std::endl;
 		return false;
-	}
-	m_connections.push_back(roomConnection);
+	}*/
+	m_rooms.push_back(data);
 	std::cout << "Room added successfully." << std::endl;
 	return true;
 }
@@ -40,7 +40,7 @@ void Server::GetRooms(std::vector<std::string>& rooms) const
 {
 	for (auto& room : m_rooms)
 	{
-		rooms.push_back(room->GetSocket().remote_endpoint().address().to_string());
+		rooms.push_back(room);
 	}
 }
 
@@ -65,22 +65,22 @@ void Server::HandleAccept(TcpConnection::Ptr connection, const boost::system::er
 {
 	if (!error)
 	{
-		std::cout << "New connection accepted." << std::endl;
+		std::cout << "New connection accepted." << '\n';
 		m_connections.push_back(connection);
 		connection->Start();
 	}
 	else
 	{
-		std::cerr << "Error accepting connection: " << error.message() << std::endl;
-		m_connections.erase(std::remove(m_connections.begin(), m_connections.end(), connection), m_connections.end());
+		std::cerr << "Error accepting connection: " << error.message() << '\n';
+		std::erase(m_connections, connection);
 	}
 	StartAccept();
 }
 
 void Server::RemoveConnection(TcpConnection::Ptr connection)
 {
-	if (std::find(m_rooms.begin(), m_rooms.end(), connection) != m_rooms.end())
-		m_rooms.erase(std::remove(m_rooms.begin(), m_rooms.end(), connection), m_rooms.end());
+	/*if (std::ranges::find(m_rooms, connection) != m_rooms.end())
+		std::erase(m_rooms, connection);*/
 
-	m_connections.erase(std::remove(m_connections.begin(), m_connections.end(), connection), m_connections.end());
+	std::erase(m_connections, connection);
 }

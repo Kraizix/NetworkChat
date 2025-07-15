@@ -13,7 +13,7 @@ public:
 
 	void Run();
 
-	bool AddRoom(const TcpConnection::Ptr& roomConnection);
+	bool AddRoom(const TcpConnection::Ptr& roomConnection, std::string& data);
 	void GetRooms(std::vector<std::string>& rooms) const;
 	void Broadcast(const Command& command);
 private:
@@ -25,6 +25,6 @@ private:
 	boost::asio::ip::tcp::acceptor m_acceptor;
 	std::vector<TcpConnection::Ptr> m_connections;
 	
-	std::vector<TcpConnection::Ptr> m_rooms;
+	std::vector<std::string> m_rooms;
 	CommandType m_flag;
 };

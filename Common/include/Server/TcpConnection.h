@@ -37,7 +37,7 @@ private:
 	void StartWrite();
 	void HandleWrite(const boost::system::error_code& error);
 	void Disconnect();
-
+	void HandleUsername();
 	void HandleMessage();
 	void HandleRoomJoin();
 	void HandleRoomCreate();
@@ -53,6 +53,7 @@ private:
 	ser::Serializer m_serializer;
 	
 	std::map<CommandType, std::function<void()>> m_commandHandlers;
+	std::string m_username;
 
 	CommandType m_acceptedTypes;
 

@@ -3,6 +3,8 @@
 #include <deque>
 #include <ser/Serializer.h>
 #include <boost/asio.hpp>
+#include "Server/Server.h"
+#include "Common/Command.h"
 
 class Client : public std::enable_shared_from_this<Client>
 {
@@ -17,6 +19,9 @@ public:
 	void Run();
 
     void SendMessage(const std::string& message);
+	void SendCommand(Command& command);
+
+    Command ParseCommand(const std::string& line);
 
 private:
     void DoConnect();
@@ -39,5 +44,8 @@ private:
 
     std::deque<Command> m_writeQueue;
     bool m_isWriting = false;
+    bool m_isRoom = false;
+    std::thread* m_serverThread = nullptr;
+    Server* m_server = nullptr;
 };
 
