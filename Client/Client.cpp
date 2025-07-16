@@ -28,6 +28,13 @@ void Client::Run()
                 std::cout << "\r";
             }
 			Command c = ParseCommand(line);
+
+            if((c.data == " " && c.type == CommandType::Message) || c.data == "")
+            {
+				Log("Please enter a valid command or message.");
+                continue;
+			}
+
             if (!m_server)
 				SendCommand(c);
             else
@@ -97,11 +104,13 @@ Command Client::ParseCommand(const std::string& line)
     {
         type = CommandType::Image;
         data = Image::ParseImage(data);
+        if(data.empty())
+            Log("Image data is empty or invalid.");
     }
     else
     {
         type = CommandType::Message;
-        if (m_isRoom)
+        if (m_isRoom && data != " ")
         {
             data = m_username + ": " + data;
         }

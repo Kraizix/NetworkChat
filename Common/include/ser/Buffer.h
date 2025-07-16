@@ -17,6 +17,8 @@ namespace ser
 		~Buffer()
 		{
 			delete[] m_base;
+			m_data = nullptr;
+			m_base = nullptr;
 		}
 
 		Buffer(const Buffer& other)

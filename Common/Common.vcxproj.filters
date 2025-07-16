@@ -25,6 +25,9 @@
     <Filter Include="Fichiers sources\Server">
       <UniqueIdentifier>{001db984-e977-4817-aede-afe576fc5d73}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Fichiers sources\Common">
+      <UniqueIdentifier>{45a42163-2590-42ef-977b-8ba33ca8e5f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ser\Serializer.h">
@@ -49,7 +52,7 @@
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="include\common\Image.h">
-      <Filter>Fichiers d%27en-tête</Filter>
+      <Filter>Fichiers d%27en-tête\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -60,7 +63,7 @@
       <Filter>Fichiers sources\Server</Filter>
     </ClCompile>
     <ClCompile Include="src\common\Image.cpp">
-      <Filter>Fichiers sources</Filter>
+      <Filter>Fichiers sources\Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

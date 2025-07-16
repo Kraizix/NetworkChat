@@ -69,6 +69,14 @@ private:
 
 	boost::asio::io_context m_ioContext;
 	boost::asio::ip::tcp::acceptor m_acceptor;
+
+	/// <summary>
+	/// List of all active connections to the server.
+	/// </summary>
 	std::vector<TcpConnection::Ptr> m_connections;
+
+	/// <summary>
+	/// Map containing connection associated with a room address.
+	/// </summary>
 	std::unordered_map<TcpConnection::Ptr, std::string> m_connectionRooms;
 };

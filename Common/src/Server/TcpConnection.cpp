@@ -148,7 +148,7 @@ void TcpConnection::HandleUsername()
 
 void TcpConnection::HandleMessage()
 {
-	m_server->Log("Received message" + m_command.data);
+	m_server->Log("Received message: " + m_command.data);
 	m_command.data = m_username + ": " + m_command.data;
 	Command c(m_command.type, m_command.data); 
 	m_server->Broadcast(c);
@@ -175,7 +175,12 @@ void TcpConnection::HandleRoomJoin()
 void TcpConnection::HandleRoomCreate()
 {
 	m_server->Log("Received request to create room: " + m_command.data);
-	m_server->AddRoom(shared_from_this(), m_command.data);
+	if (!m_server->AddRoom(shared_from_this(), m_command.data))
+	{
+		Command response(CommandType::CreateRoom, RoomError);
+		m_writeQueue.push_back(std::move(response));
+		return;
+	}
 	Command response(CommandType::CreateRoom, m_command.data);
 	m_writeQueue.push_back(std::move(response));
 }
@@ -186,6 +191,8 @@ void TcpConnection::HandleRoomList()
 	std::vector<std::string> rooms;
 	m_server->GetRooms(rooms);
 	auto roomList = rooms | std::views::join_with(std::string(";")) | std::ranges::to<std::string>();
+	if(roomList.empty())
+		roomList = "No rooms available.";
 	Command response(CommandType::ListRooms, roomList);
 	m_writeQueue.push_back(std::move(response));
 }

@@ -23,11 +23,36 @@ public:
     ~Client();
 
 private:
+    /// <summary>
+	/// Handles the connection to the server.
+    /// </summary>
     void DoConnect();
+
+    /// <summary>
+	/// Handles reading the header of the command.
+    /// </summary>
     void DoReadHeader();
+
+    /// <summary>
+	/// Handles reading the body of the command.
+    /// </summary>
     void DoReadBody();
+
+    /// <summary>
+	/// Handles writing the command to the server.
+    /// </summary>
     void DoWrite();
+
+    /// <summary>
+	/// Handles the command received from the server.
+    /// </summary>
+    /// <param name="command">Command received</param>
     void HandleCommand(Command command);
+
+	/// <summary>
+	/// Log a message to the console.
+	/// </summary>
+	/// <param name="message">Message to log</param>
 	void Log(const std::string& message);
 
     Client(std::string host, std::string port);
@@ -35,12 +60,12 @@ private:
     boost::asio::io_context m_ioContext;
     boost::asio::ip::tcp::socket m_socket;
     boost::asio::ip::tcp::resolver m_resolver;
-
     std::string m_host;
     std::string m_port;
-
     Command m_command;
     ser::Serializer m_serializer;
+   
+    
 
     std::deque<Command> m_writeQueue;
     bool m_isConnected = false;

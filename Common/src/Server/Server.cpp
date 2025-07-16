@@ -31,8 +31,24 @@ bool Server::AddRoom(const TcpConnection::Ptr& roomConnection, std::string& data
 		Log("Connection already has a room.");
 		return false;
 	}
+	if (!std::all_of(data.begin(), data.end(), ::isdigit)) {
+		return false;
+	}
+
+	try {
+		int port = std::stoi(data);
+		if(port < 1 && port > 65535)
+		{
+			Log("Invalid port number: " + data);
+			return false;
+		}
+	}
+	catch (const std::exception&) {
+		Log("Invalid port number: " + data);
+		return false;
+	}
 	m_connectionRooms.insert({roomConnection, roomConnection->GetSocket().remote_endpoint().address().to_string() + ':' + data});
-	Log("Room added: " + roomConnection->GetSocket().remote_endpoint().address().to_string() + data);
+	Log("Room added: " + roomConnection->GetSocket().remote_endpoint().address().to_string() + ':' + data);
 	return true;
 }
 
