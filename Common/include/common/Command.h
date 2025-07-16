@@ -1,13 +1,12 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include "ser/Buffer.h"
 
 #define RoomFlags CommandType::ListRooms | CommandType::JoinRoom | CommandType::CreateRoom
-
 #define RoomOK "OK"
 #define RoomError "ERROR"
+
 enum class CommandType : uint8_t
 {
 	Message = 1,
@@ -15,6 +14,8 @@ enum class CommandType : uint8_t
 	JoinRoom = 4,
 	CreateRoom = 8,
 	Disconnect = 16,
+	Username = 32,
+	Image = 64,
 };
 
 
@@ -37,11 +38,11 @@ struct Command
 
 	Command(CommandType _type, std::string _data): data(_data), type(_type), buffer(nullptr, 0)
 	{
-		total_length = static_cast<uint16_t>(data.size() + sizeof(size_t) + sizeof(type));
-		buffer = ser::Buffer(new uint8_t[total_length + sizeof(total_length)], total_length + sizeof(total_length));
+		total_length = static_cast<uint16_t>(data.size() + sizeof(size_t) + sizeof(type) + sizeof(total_length));
+		buffer = ser::Buffer(new uint8_t[total_length], total_length);
 	}
 
-	Command(uint16_t size): total_length(size), type(CommandType::Message), buffer(new uint8_t[size], size)
+	Command(uint16_t size): total_length(size + sizeof(total_length)), type(CommandType::Message), buffer(new uint8_t[size + sizeof(total_length)], size + sizeof(total_length))
 	{
 	}
 

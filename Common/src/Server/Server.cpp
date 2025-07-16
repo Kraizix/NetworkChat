@@ -1,7 +1,7 @@
-#include "Server.h"
+#include "Server/Server.h"
 
 #include <iostream>
-#include "TcpConnection.h"
+#include "Server/TcpConnection.h"
 
 Server::Server(boost::asio::ip::port_type port, CommandType flag) : m_acceptor(m_ioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)), m_flag(flag)
 {
@@ -15,32 +15,48 @@ Server::~Server()
 		connection->GetSocket().close();
 	}
 	m_connections.clear();
-	std::cout << "Server stopped." << std::endl;
+	Log("Server stopped.");
 }
 
 void Server::Run()
 {
-	std::cout << "Server is running." << std::endl;
+	Log("Server started. Waiting for connections...");
 	m_ioContext.run();
-}
+ }
 
-bool Server::AddRoom(TcpConnection::Ptr roomConnection)
+bool Server::AddRoom(const TcpConnection::Ptr& roomConnection, std::string& data)
 {
-	if (std::find(m_connections.begin(), m_connections.end(), roomConnection) != m_connections.end())
+	if (m_connectionRooms.contains(roomConnection))
 	{
-		std::cerr << "Connection already exists." << std::endl;
+		Log("Connection already has a room.");
 		return false;
 	}
-	m_connections.push_back(roomConnection);
-	std::cout << "Room added successfully." << std::endl;
+	if (!std::all_of(data.begin(), data.end(), ::isdigit)) {
+		return false;
+	}
+
+	try {
+		int port = std::stoi(data);
+		if(port < 1 && port > 65535)
+		{
+			Log("Invalid port number: " + data);
+			return false;
+		}
+	}
+	catch (const std::exception&) {
+		Log("Invalid port number: " + data);
+		return false;
+	}
+	m_connectionRooms.insert({roomConnection, roomConnection->GetSocket().remote_endpoint().address().to_string() + ':' + data});
+	Log("Room added: " + roomConnection->GetSocket().remote_endpoint().address().to_string() + ':' + data);
 	return true;
 }
 
 void Server::GetRooms(std::vector<std::string>& rooms) const
 {
-	for (auto& room : m_rooms)
+	for (auto& room : m_connectionRooms)
 	{
-		rooms.push_back(room->GetSocket().remote_endpoint().address().to_string());
+		rooms.push_back(room.second);
 	}
 }
 
@@ -65,22 +81,26 @@ void Server::HandleAccept(TcpConnection::Ptr connection, const boost::system::er
 {
 	if (!error)
 	{
-		std::cout << "New connection accepted." << std::endl;
+		Log("New connection accepted.");
 		m_connections.push_back(connection);
 		connection->Start();
 	}
 	else
 	{
-		std::cerr << "Error accepting connection: " << error.message() << std::endl;
-		m_connections.erase(std::remove(m_connections.begin(), m_connections.end(), connection), m_connections.end());
+		Log("Error accepting connection: " + error.message());
+		std::erase(m_connections, connection);
 	}
 	StartAccept();
 }
 
 void Server::RemoveConnection(TcpConnection::Ptr connection)
 {
-	if (std::find(m_rooms.begin(), m_rooms.end(), connection) != m_rooms.end())
-		m_rooms.erase(std::remove(m_rooms.begin(), m_rooms.end(), connection), m_rooms.end());
+	m_connectionRooms.erase(connection);
 
-	m_connections.erase(std::remove(m_connections.begin(), m_connections.end(), connection), m_connections.end());
+	std::erase(m_connections, connection);
+}
+
+void Server::Log(const std::string& message)
+{
+	std::cout << message << '\n';
 }

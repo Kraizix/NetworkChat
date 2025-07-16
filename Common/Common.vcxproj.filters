@@ -19,11 +19,17 @@
     <Filter Include="Fichiers d%27en-tête\Common">
       <UniqueIdentifier>{e11aaff2-0022-4be3-80ac-877935fcafab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Fichiers d%27en-tête\Server">
+      <UniqueIdentifier>{c29f99c2-358e-4c95-859a-aec2ed66711c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Server">
+      <UniqueIdentifier>{001db984-e977-4817-aede-afe576fc5d73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Common">
+      <UniqueIdentifier>{45a42163-2590-42ef-977b-8ba33ca8e5f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\common\message.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="include\ser\Serializer.h">
       <Filter>Fichiers d%27en-tête\ser</Filter>
     </ClInclude>
@@ -33,10 +39,31 @@
     <ClInclude Include="include\ser\Buffer.h">
       <Filter>Fichiers d%27en-tête\ser</Filter>
     </ClInclude>
+    <ClInclude Include="include\Server\TcpConnection.h">
+      <Filter>Fichiers d%27en-tête\Server</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Server\Server.h">
+      <Filter>Fichiers d%27en-tête\Server</Filter>
+    </ClInclude>
+    <ClInclude Include="external\stb_image\stb_image.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="external\stb_image\stb_image_write.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\Image.h">
+      <Filter>Fichiers d%27en-tête\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="build.cpp">
-      <Filter>Fichiers de ressources</Filter>
+    <ClCompile Include="src\Server\TcpConnection.cpp">
+      <Filter>Fichiers sources\Server</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Server\Server.cpp">
+      <Filter>Fichiers sources\Server</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Image.cpp">
+      <Filter>Fichiers sources\Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -13,33 +13,13 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Fichiers sources\Server">
-      <UniqueIdentifier>{ca77c66c-fb56-41a3-8f04-a19916e3fb9c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Fichiers d%27en-tête\Server">
-      <UniqueIdentifier>{2d5601b2-4c36-4260-9ea8-2e4d90f777af}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="src\Server.cpp">
-      <Filter>Fichiers sources\Server</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TcpConnection.cpp">
-      <Filter>Fichiers sources\Server</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\vcpkg.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\Server.h">
-      <Filter>Fichiers d%27en-tête\Server</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TcpConnection.h">
-      <Filter>Fichiers d%27en-tête\Server</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

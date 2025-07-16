@@ -1,8 +1,4 @@
-#include <iostream>
-#include <string>
 #include <boost/asio.hpp>
-#include "common/Command.h"
-#include "ser/Serializer.h"
 #include "Client.h"
 
 int main() {

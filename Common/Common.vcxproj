@@ -19,13 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="external\stb_image\stb_image.h" />
+    <ClInclude Include="external\stb_image\stb_image_write.h" />
     <ClInclude Include="include\common\Command.h" />
-    <ClInclude Include="include\common\message.h" />
+    <ClInclude Include="include\common\Image.h" />
+    <ClInclude Include="include\Server\Server.h" />
+    <ClInclude Include="include\Server\TcpConnection.h" />
     <ClInclude Include="include\ser\Buffer.h" />
     <ClInclude Include="include\ser\Serializer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="build.cpp" />
+    <ClCompile Include="src\common\Image.cpp" />
+    <ClCompile Include="src\Server\Server.cpp" />
+    <ClCompile Include="src\Server\TcpConnection.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -133,7 +139,8 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)external</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>2220</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>

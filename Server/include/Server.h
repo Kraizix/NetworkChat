@@ -2,7 +2,6 @@
 
 #include <boost/asio.hpp>
 #include <vector>
-#include "ser/Serializer.h"
 #include "TcpConnection.h"
 #include "Common/Command.h"
 
@@ -14,7 +13,7 @@ public:
 
 	void Run();
 
-	bool AddRoom(TcpConnection::Ptr roomConnection);
+	bool AddRoom(const TcpConnection::Ptr& roomConnection);
 	void GetRooms(std::vector<std::string>& rooms) const;
 	void Broadcast(const Command& command);
 private:

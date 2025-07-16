@@ -151,8 +151,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="src\Server.cpp" />
-    <ClCompile Include="src\TcpConnection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\vcpkg.json" />
@@ -161,10 +159,6 @@
     <ProjectReference Include="..\Common\Common.vcxproj">
       <Project>{966bff4d-1067-4dbe-ab09-e2901267db8b}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\Server.h" />
-    <ClInclude Include="include\TcpConnection.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
