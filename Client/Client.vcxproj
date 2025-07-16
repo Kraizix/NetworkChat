@@ -121,7 +121,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4251</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)Common/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Common/include;$(ProjectDir)include;$(SolutionDir)Common/external</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -152,6 +152,7 @@
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\RoomServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.vcxproj">
@@ -160,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />
+    <ClInclude Include="include\RoomServer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

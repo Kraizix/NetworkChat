@@ -15,32 +15,32 @@ Server::~Server()
 		connection->GetSocket().close();
 	}
 	m_connections.clear();
-	std::cout << "Server stopped." << std::endl;
+	Log("Server stopped.");
 }
 
 void Server::Run()
 {
-	std::cout << "Server is running." << std::endl;
+	Log("Server started. Waiting for connections...");
 	m_ioContext.run();
  }
 
 bool Server::AddRoom(const TcpConnection::Ptr& roomConnection, std::string& data)
 {
-	/*if (std::ranges::find(m_connections, roomConnection) != m_connections.end())
+	if (m_connectionRooms.contains(roomConnection))
 	{
-		std::cerr << "Connection already exists." << std::endl;
+		Log("Connection already has a room.");
 		return false;
-	}*/
-	m_rooms.push_back(data);
-	std::cout << "Room added successfully." << std::endl;
+	}
+	m_connectionRooms.insert({roomConnection, roomConnection->GetSocket().remote_endpoint().address().to_string() + ':' + data});
+	Log("Room added: " + roomConnection->GetSocket().remote_endpoint().address().to_string() + data);
 	return true;
 }
 
 void Server::GetRooms(std::vector<std::string>& rooms) const
 {
-	for (auto& room : m_rooms)
+	for (auto& room : m_connectionRooms)
 	{
-		rooms.push_back(room);
+		rooms.push_back(room.second);
 	}
 }
 
@@ -65,13 +65,13 @@ void Server::HandleAccept(TcpConnection::Ptr connection, const boost::system::er
 {
 	if (!error)
 	{
-		std::cout << "New connection accepted." << '\n';
+		Log("New connection accepted.");
 		m_connections.push_back(connection);
 		connection->Start();
 	}
 	else
 	{
-		std::cerr << "Error accepting connection: " << error.message() << '\n';
+		Log("Error accepting connection: " + error.message());
 		std::erase(m_connections, connection);
 	}
 	StartAccept();
@@ -79,8 +79,12 @@ void Server::HandleAccept(TcpConnection::Ptr connection, const boost::system::er
 
 void Server::RemoveConnection(TcpConnection::Ptr connection)
 {
-	/*if (std::ranges::find(m_rooms, connection) != m_rooms.end())
-		std::erase(m_rooms, connection);*/
+	m_connectionRooms.erase(connection);
 
 	std::erase(m_connections, connection);
+}
+
+void Server::Log(const std::string& message)
+{
+	std::cout << message << '\n';
 }

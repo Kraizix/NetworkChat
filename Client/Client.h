@@ -3,8 +3,8 @@
 #include <deque>
 #include <ser/Serializer.h>
 #include <boost/asio.hpp>
-#include "Server/Server.h"
 #include "Common/Command.h"
+#include "include/RoomServer.h"
 
 class Client : public std::enable_shared_from_this<Client>
 {
@@ -17,18 +17,18 @@ public:
 	}
 
 	void Run();
-
-    void SendMessage(const std::string& message);
 	void SendCommand(Command& command);
-
     Command ParseCommand(const std::string& line);
+
+    ~Client();
 
 private:
     void DoConnect();
     void DoReadHeader();
     void DoReadBody();
     void DoWrite();
-    void HandleCommand();
+    void HandleCommand(Command command);
+	void Log(const std::string& message);
 
     Client(std::string host, std::string port);
 
@@ -43,9 +43,13 @@ private:
     ser::Serializer m_serializer;
 
     std::deque<Command> m_writeQueue;
+    bool m_isConnected = false;
     bool m_isWriting = false;
     bool m_isRoom = false;
+    bool m_isStopped = false;
     std::thread* m_serverThread = nullptr;
-    Server* m_server = nullptr;
+    RoomServer* m_server = nullptr;
+	std::mutex m_mutex;
+    std::string m_username = "Guest";
 };
 

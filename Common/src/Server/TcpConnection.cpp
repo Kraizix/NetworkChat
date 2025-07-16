@@ -14,6 +14,7 @@ TcpConnection::TcpConnection(Server* server, boost::asio::io_context& io_context
 	m_commandHandlers.emplace(CommandType::JoinRoom, [this] { HandleRoomJoin(); });
 	m_commandHandlers.emplace(CommandType::Disconnect, [this] { HandleDisconnect(); });
 	m_commandHandlers.emplace(CommandType::Username, [this] { HandleUsername();  });
+	m_commandHandlers.emplace(CommandType::Image, [this] { HandleImage(); });
 }
 
 void TcpConnection::Start()
@@ -51,48 +52,50 @@ void TcpConnection::HandleReadHeader(const boost::system::error_code& error)
 {
 	if (error)
 	{
-		std::cerr << "Error on header read: " << error.message() << std::endl;
+		m_server->Log("Error on header read: " + error.message());
 		Disconnect();
 		return;
 	}
-
 	m_serializer.Read(m_command.buffer, m_command.total_length);
 	m_command.buffer.Reset();
+	
 
 	if (m_command.total_length > 0)
 	{
 		if(m_command.total_length > m_command.buffer.m_size)
 		{
-			m_command = Command(m_command.total_length);
+			m_command = Command(m_command.total_length - sizeof(m_command.total_length));
 		}
 
 		// Read the body of the command
-		boost::asio::async_read(m_socket, boost::asio::buffer(m_command.buffer.m_data, m_command.total_length),
+		boost::asio::async_read(m_socket, boost::asio::buffer(m_command.buffer.m_data, m_command.total_length - sizeof(m_command.total_length)),
 			std::bind(&TcpConnection::HandleReadBody, shared_from_this(),
 				std::placeholders::_1));
+		return;
 	}
-	//TODO: Handle the case where total_length is 0 (no body to read).
+	m_server->Log("Error while receiving body length is 0 or less");
+	Disconnect();
 }
 
 void TcpConnection::HandleReadBody(const boost::system::error_code& error)
 {
 	if (error)
 	{
-		std::cerr << "Error on body read: " << error.message() << std::endl;
+		m_server->Log("Error on body read: " + error.message());
 		Disconnect();
 		return;
 	}
 
 	m_serializer.Read(m_command.buffer, m_command);
-
-	HandleCommand();
 	m_command.buffer.Reset();
+	HandleCommand();
+	
 	StartRead();
 }
 
 void TcpConnection::HandleCommand()
 {
-	std::cout << "Handling command of type: " << static_cast<int>(m_command.type) << ':' << m_command.data << std::endl;
+	m_server->Log("Handling command of type: " +std::to_string(static_cast<uint8_t>(m_command.type)));
 	if((static_cast<uint8_t>(m_command.type) & static_cast<uint8_t>(m_acceptedTypes)) != 0)
 		m_commandHandlers[m_command.type]();
 	StartWrite();
@@ -105,11 +108,9 @@ void TcpConnection::StartWrite()
 
 	m_isWriting = true;
 	auto& data = m_writeQueue.front();
-	std::cout << "Writing command of type: " << static_cast<int>(data.type) << data.data << std::endl;
 	m_serializer.Write(data.buffer, data);
-	data.buffer.m_remaining = data.total_length + sizeof(data.total_length);
-	data.buffer.m_data -= data.buffer.m_remaining;
-	boost::asio::async_write(m_socket, boost::asio::buffer(data.buffer.m_data, data.total_length + sizeof(data.total_length)),
+	data.buffer.Reset();
+	boost::asio::async_write(m_socket, boost::asio::buffer(data.buffer.m_data, data.total_length),
 		std::bind(&TcpConnection::HandleWrite, shared_from_this(),
 			std::placeholders::_1));
 }
@@ -125,8 +126,7 @@ void TcpConnection::HandleWrite(const boost::system::error_code& error)
 	}
 	else
 	{
-		//TODO: Handle error properly.
-		std::cerr << "Error on write: " << error.message() << std::endl;
+		m_server->Log("Error on write: " + error.message());
 		m_isWriting = false;
 		Disconnect();
 	}
@@ -134,7 +134,7 @@ void TcpConnection::HandleWrite(const boost::system::error_code& error)
 
 void TcpConnection::Disconnect()
 {
-	std::cout << "Disconnecting from client." << std::endl;
+	m_server->Log("Disconnecting client");
 	if (m_onDisconnect)
 		m_onDisconnect(shared_from_this());
 	m_socket.close();
@@ -142,13 +142,13 @@ void TcpConnection::Disconnect()
 
 void TcpConnection::HandleUsername()
 {
-	std::cout << "Received username: " << m_command.data << std::endl;
+	m_server->Log("Setting username: " + m_command.data);
 	m_username = m_command.data;
 }
 
 void TcpConnection::HandleMessage()
 {
-	std::cout << "Received message: " << m_command.data << std::endl;
+	m_server->Log("Received message" + m_command.data);
 	m_command.data = m_username + ": " + m_command.data;
 	Command c(m_command.type, m_command.data); 
 	m_server->Broadcast(c);
@@ -157,7 +157,7 @@ void TcpConnection::HandleMessage()
 
 void TcpConnection::HandleRoomJoin()
 {
-	std::cout << "Received request to join room: " << m_command.data << std::endl;
+	m_server->Log("Received request to join room: " + m_command.data);
 	std::vector<std::string> rooms;
 	m_server->GetRooms(rooms);
 	if(std::ranges::find(rooms, m_command.data) != rooms.end())
@@ -174,15 +174,15 @@ void TcpConnection::HandleRoomJoin()
 
 void TcpConnection::HandleRoomCreate()
 {
-	std::cout << "Received request to create room: " << m_command.data << std::endl;
+	m_server->Log("Received request to create room: " + m_command.data);
 	m_server->AddRoom(shared_from_this(), m_command.data);
-	Command response(CommandType::CreateRoom, RoomOK);
+	Command response(CommandType::CreateRoom, m_command.data);
 	m_writeQueue.push_back(std::move(response));
 }
 
 void TcpConnection::HandleRoomList()
 {
-	std::cout << "Received request for room list." << std::endl;
+	m_server->Log("Received request for room list.");
 	std::vector<std::string> rooms;
 	m_server->GetRooms(rooms);
 	auto roomList = rooms | std::views::join_with(std::string(";")) | std::ranges::to<std::string>();
@@ -195,3 +195,10 @@ void TcpConnection::HandleDisconnect()
 {
 	Disconnect();
 }
+
+void TcpConnection::HandleImage()
+{
+	m_server->Broadcast(m_command);
+	m_command = Command(512);
+}
+
