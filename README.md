@@ -32,7 +32,7 @@ This project implements a **main server** responsible for managing chat rooms (c
 ## Build Instructions
 
 1. Open the solution (`.sln`) file in Visual Studio 2022.
-2. Build both the **Client** and **Server** projects using your preferred build configuration (Debug/Release).
+2. Build both the **Client** and **Server** projects.
 
 ---
 
@@ -42,6 +42,8 @@ This project implements a **main server** responsible for managing chat rooms (c
 2. Start one or more **Clients** by running `Client.exe`.
 
 Each client connects to the main server to manage room activities.
+
+Main Server only handles room commands and disconnect. Rooms only handle message, username, image and disconnect commands
 
 ---
 
